@@ -39,7 +39,9 @@ export function HighlightCard({
 
       <Footer>
         <Amount type={type}>{amount}</Amount>
-        <LastTransation type={type}>{lastTransaction}</LastTransation>
+        { !!lastTransaction &&
+          <LastTransation type={type}>{lastTransaction}</LastTransation>
+        }
       </Footer>
     </Container>
   );

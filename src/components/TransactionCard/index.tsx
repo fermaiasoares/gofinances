@@ -19,12 +19,12 @@ export interface TransactionCardProps {
   amount: string;
   category: string;
   date: string;
-};
+}
 
 interface ICategory {
   icon: string;
   name: string;
-};
+}
 
 interface Props {
   data: TransactionCardProps;
@@ -42,7 +42,7 @@ export function TransactionCard({
     <Container>
       <Title>{data.name}</Title>
       <Amount type={data.type}>
-       {data.type === 'negative' && '-'}
+       {data.type === 'negative' && '- '}
        {data.amount}
       </Amount>
 
