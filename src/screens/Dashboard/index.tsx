@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { HighlightCard } from '../../components/HighlightCard';
 import { TransactionCard, TransactionCardProps } from '../../components/TransactionCard';
@@ -20,46 +22,55 @@ import {
   UserWrapper
 } from './styles';
 
+import { categories } from '../../utils/categories';
+
 export interface DataListProps extends TransactionCardProps {
   id: string;
 }
 
 export function Dashboard() {
-  const data: DataListProps[] = [
-    {
-      id: '1',
-      type: 'positive',
-      title: "Desenvolvimento de Site",
-      amount: "R$ 12.000,00",
-      date: "13/04/2020",
-      category: {
-        name: 'Vendas', 
-        icon: 'dollar-sign' 
+  const [data, setData] = useState<DataListProps[]>([]);
+
+  async function loadTransactions() {
+    const dataKey = '@gofinance:transactions';
+    const response = await AsyncStorage.getItem(dataKey);
+    const transactions = response ? JSON.parse(response) : [];
+    
+    const transactionsFormatted: DataListProps[] = transactions.map(
+      (item: DataListProps) => {
+        const amount = Number(item.amount).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        });
+
+        console.log(Number(item.amount).toLocaleString('pt-BR', {
+          style: 'currency',
+          currency: 'BRL'
+        }));
+
+        const date = new Date(item.date).toLocaleDateString('pt-BR');
+
+        return {
+          id: item.id,
+          name: item.name,
+          amount,
+          date,
+          type: item.type,
+          category: item.category,
+        }
       }
-    },
-    {
-      id: '2',
-      type: 'negative',
-      title: "Aluguel apartamento",
-      amount: "R$ 1.200,00",
-      date: "13/04/2020",
-      category: {
-        name: 'Casa', 
-        icon: 'home' 
-      }
-    },
-    {
-      id: '3',
-      type: 'negative',
-      title: "Pizzaria Italiana",
-      amount: "R$ 50,00",
-      date: "13/04/2020",
-      category: {
-        name: 'Alimentação', 
-        icon: 'coffee' 
-      }
-    }
-  ];
+    );
+
+    setData(transactionsFormatted);
+  }
+
+  useEffect(() => {
+    loadTransactions();
+  }, []);
+
+  useFocusEffect(useCallback(() => {
+    loadTransactions();
+  }, []));
 
   return (
     <Container>
