@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Alert, Keyboard, Modal, TouchableWithoutFeedback } from 'react-native';
 import { yupResolver } from '@hookform/resolvers/yup';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,6 +22,7 @@ import { TransactionButton } from '../../components/Forms/TransactioButton';
 import { Select } from '../../components/Forms/Select';
 import { CategorySelect } from '../CategorySelect';
 import { InputForm } from '../../components/Forms/InputForm';
+import { useAuth } from '../../hooks/auth';
 
 interface FormData {
   name: string;
@@ -37,7 +38,7 @@ const schema = yup.object().shape({
 });
 
 export function Register() {
-
+  const { user } = useAuth();
   const navigation = useNavigation();
 
   const {
@@ -88,7 +89,7 @@ export function Register() {
     }
 
     try {
-      const dataKey = '@gofinance:transactions';
+      const dataKey = `@gofinances:transactions_user:${user.id}`;
       const transactions = await AsyncStorage.getItem(dataKey);
 
       const currentTransaction = transactions ? JSON.parse(transactions) : [];
@@ -109,11 +110,8 @@ export function Register() {
       reset();
 
       navigation.navigate('Listagem');
-
-      console.log('Transação registrada com sucesso!');
-
     } catch (error) {
-      console.log(error);
+      Alert.alert('Erro ao tentar registra a transação');
     }
   }
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -24,6 +24,7 @@ import {
   UserWrapper
 } from './styles';
 import { useTheme } from 'styled-components';
+import { useAuth } from '../../hooks/auth';
 
 export interface DataListProps extends TransactionCardProps {
   id: string;
@@ -40,6 +41,7 @@ interface HighlightData {
 }
 
 export function Dashboard() {
+  const {user, signOut} = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [transactions, setTransactions] = useState<DataListProps[]>([]);
   const [highlightData, setHighlightData] = useState<HighlightData>({} as HighlightData);
@@ -64,7 +66,7 @@ export function Dashboard() {
   }
 
   async function loadTransactions() {
-    const dataKey = '@gofinance:transactions';
+    const dataKey = `@gofinances:transactions_user:${user.id}`;
     const response = await AsyncStorage.getItem(dataKey);
 
     const currentTransactions = !!response ? JSON.parse(response) : [];
@@ -129,6 +131,14 @@ export function Dashboard() {
     setIsLoading(false);
   }
 
+  async function handleSignOut() {
+    try {
+      await signOut();
+    } catch (error) {
+      Alert.alert('Não foi possível realizar o logout');
+    }
+  }
+
   useFocusEffect(useCallback(() => {
     loadTransactions();
   }, []));
@@ -148,13 +158,13 @@ export function Dashboard() {
         <Header>
           <UserWrapper>
             <UserInfo>
-              <Photo source={{ uri: 'https://github.com/fermaiasoares.png' }}/>
+              <Photo source={{ uri: user.photo }}/>
               <User>
                 <UserGretting>Olá</UserGretting>
-                <UserName>Fernando Maia</UserName>
+                <UserName>{user.name}</UserName>
               </User>
             </UserInfo>
-            <LogoutButton onPress={() => {}}>
+            <LogoutButton onPress={handleSignOut}>
               <Icon name="power" />
             </LogoutButton>
           </UserWrapper>
@@ -164,17 +174,17 @@ export function Dashboard() {
           <HighlightCard 
             type="up"
             title="Entrada" 
-            lastTransaction={highlightData.entries.lastTransaction}
+            lastTransaction={highlightData.entries.lastTransaction!}
             amount={highlightData.entries.amount} />     
           <HighlightCard
             type="down"
             title="Saída" 
-            lastTransaction={highlightData.expense.lastTransaction}
+            lastTransaction={highlightData.expense.lastTransaction!}
             amount={highlightData.expense.amount} />
           <HighlightCard
             type="total"
             title="Total"
-            lastTransaction="01 à 16 de abril"
+            lastTransaction=""
             amount={highlightData.total.amount} />
         </HighlightCards>
 
